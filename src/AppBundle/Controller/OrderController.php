@@ -36,40 +36,24 @@ class OrderController extends BaseController
         if ($request->isMethod('POST')) {
             $token = $request->request->get('stripeToken');
 
-           \Stripe\Stripe::setApiKey($this->getParameter('stripe_secret_key'));
-
-           /** @var User $user */
-           $user = $this->getUser();
+            $stripeClient = $this->get('stripe_client');
+            /** @var $user User */
+            $user = $this->getUser();
            if (!$user->getStripeCustomerId()) {
-               $customer = \Stripe\Customer::create([
-                    'email' => $user->getEmail(),
-                    'source' => $token
-               ]);
-               $user->setStripeCustomerId($customer->id);
-
-               $em = $this->getDoctrine()->getManager();
-               $em->persist($user);
-               $em->flush();
+               $stripeClient->createCustomer($user, $token);
            } else {
-               $customer = \Stripe\Customer::retrieve($user->getStripeCustomerId());
-
-               $customer->source = $token;
-               $customer->save();
+               $stripeClient->updateCustomerCard($user, $token);
            }
 
            foreach ($this->get('shopping_cart')->getProducts() as $product) {
-               \Stripe\InvoiceItem::create([
-                   "amount" => $product->getPrice() * 100,
-                   "currency" => "usd",
-                   "customer" => $user->getStripeCustomerId(),
-                   "description" => $product->getName()
-               ]);
+               $stripeClient->createInvoiceItem(
+                   $product->getPrice() * 100,
+                   $user,
+                   $product->getName()
+               );
            }
 
-           $invoice = \Stripe\Invoice::create([
-                "customer" => $user->getStripeCustomerId()
-           ]);
-           $invoice->pay();
+           $stripeClient->createInvoice($user, true);
 
            $this->get('shopping_cart')->emptyCart();
            $this->addFlash('success', 'Order Complete! Yay!');
