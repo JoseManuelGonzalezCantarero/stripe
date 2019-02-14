@@ -31,9 +31,11 @@
                         </tr>
                         <tr>
                             <th>Credit Card</th>
-                            <td>
+                            {% if app.user.cardBrand %}
+                                {{ app.user.cardBrand }} ending in {{ app.user.cardLast4 }}
+                            {% else %}
                                 None
-                            </td>
+                            {% endif %}
                         </tr>
                         </tbody>
                     </table>
