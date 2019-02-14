@@ -24,6 +24,12 @@ class UserController extends BaseController
         $stripeClient = $this->get('stripe_client');
         $stripeClient->cancelSubscription($this->getUser());
 
+        $subscription = $this->getUser()->getSubscription();
+        $subscription->deactivateSubscription();
+        $em = $this->getDoctrine()->getManager();
+        $em->persist($subscription);
+        $em->flush();
+
         $this->addFlash('success', 'Subscription Canceled :(');
 
         return $this->redirectToRoute('account');

@@ -84,4 +84,26 @@ class Subscription
         $this->billingPeriodEndsAt = $periodEnd;
         $this->endsAt = null;
     }
+
+    public function deactivateSubscription()
+    {
+        // paid through end of period
+        $this->endsAt = $this->billingPeriodEndsAt;
+        $this->billingPeriodEndsAt = null;
+    }
+
+    /**
+     * Subscription is active, or cancelled but still in "active" period
+     *
+     * @return bool
+     */
+    public function isActive()
+    {
+        return $this->endsAt === null || $this->endsAt > new \DateTime();
+    }
+
+    public function isCancelled()
+    {
+        return $this->endsAt !== null;
+    }
 }
