@@ -93,7 +93,9 @@ class OrderController extends BaseController
             $stripeClient->updateCustomerCard($user, $token);
         }
 
-        foreach ($this->get('shopping_cart')->getProducts() as $product) {
+        $cart = $this->get('shopping_cart');
+
+        foreach ($cart->getProducts() as $product) {
             $stripeClient->createInvoiceItem(
                 $product->getPrice() * 100,
                 $user,
@@ -101,6 +103,15 @@ class OrderController extends BaseController
             );
         }
 
-        $stripeClient->createInvoice($user, true);
+        if ($cart->getSubscriptionPlan()) {
+            // a subscription creates an invoice
+            $stripeClient->createSubscription(
+                $user,
+                $cart->getSubscriptionPlan()
+            );
+        } else {
+            // charge the invoice!
+            $stripeClient->createInvoice($user, true);
+        }
     }
 }
