@@ -105,9 +105,14 @@ class OrderController extends BaseController
 
         if ($cart->getSubscriptionPlan()) {
             // a subscription creates an invoice
-            $stripeClient->createSubscription(
+            $stripeSubscription = $stripeClient->createSubscription(
                 $user,
                 $cart->getSubscriptionPlan()
+            );
+
+            $this->get('subscription_helper')->addSubscriptionToUser(
+                $stripeSubscription,
+                $user
             );
         } else {
             // charge the invoice!

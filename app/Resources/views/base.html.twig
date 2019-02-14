@@ -33,6 +33,9 @@
                     <ul class="nav navbar-nav">
                         {% if is_granted('ROLE_USER') %}
                             <li>
+                                <a href="{{ path('account') }}">Account</a>
+                            </li>
+                            <li>
                                 <a href="{{ path('fos_user_security_logout') }}">Logout</a>
                             </li>
                         {% else %}
