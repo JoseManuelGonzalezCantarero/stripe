@@ -26,16 +26,22 @@
                         <tr>
                             <th>Next Billing at:</th>
                             <td>
-                                n/a
+                                {% if app.user.subscription %}
+                                    {{ app.user.subscription.billingPeriodEndsAt|date('F jS') }}
+                                {% else %}
+                                    n/a
+                                {% endif %}
                             </td>
                         </tr>
                         <tr>
                             <th>Credit Card</th>
-                            {% if app.user.cardBrand %}
-                                {{ app.user.cardBrand }} ending in {{ app.user.cardLast4 }}
-                            {% else %}
-                                None
-                            {% endif %}
+                            <td>
+                                {% if app.user.cardBrand %}
+                                    {{ app.user.cardBrand }} ending in {{ app.user.cardLast4 }}
+                                {% else %}
+                                    None
+                                {% endif %}
+                            </td>
                         </tr>
                         </tbody>
                     </table>
