@@ -12,3 +12,7 @@ services:
         class: AppBundle\StripeClient
         autowire: true
         arguments: ['%stripe_secret_key%']
+
+    subscription_helper:
+      class: AppBundle\Subscription\SubscriptionHelper
+      autowire: true
