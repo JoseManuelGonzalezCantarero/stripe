@@ -34,4 +34,19 @@ class UserController extends BaseController
 
         return $this->redirectToRoute('account');
     }
+
+    /**
+     * @Route("/account/subscription/reactivate", name="account_subscription_reactivate")
+     */
+    public function reactivateSubscriptionAction()
+    {
+        $stripeClient = $this->get('stripe_client');
+        $stripeSubscription = $stripeClient->reactivateSubscription($this->getUser());
+
+        $this->get('subscription_helper')->addSubscriptionToUser($stripeSubscription, $this->getUser());
+
+        $this->addFlash('success', 'Welcome back!');
+
+        return $this->redirectToRoute('account');
+    }
 }
