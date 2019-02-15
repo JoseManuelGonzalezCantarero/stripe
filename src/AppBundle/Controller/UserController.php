@@ -4,6 +4,7 @@ namespace AppBundle\Controller;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Symfony\Component\HttpFoundation\Request;
 
 class UserController extends BaseController
 {
@@ -56,6 +57,29 @@ class UserController extends BaseController
         $this->get('subscription_helper')->addSubscriptionToUser($stripeSubscription, $this->getUser());
 
         $this->addFlash('success', 'Welcome back!');
+
+        return $this->redirectToRoute('account');
+    }
+
+    /**
+     * @Route("/account/card/update", name="account_update_credit_card")
+     * @Method("POST")
+     */
+    public function updateCreditCardAction(Request $request)
+    {
+        $token = $request->request->get('stripeToken');
+        $user = $this->getUser();
+
+        $stripeClient = $this->get('stripe_client');
+        $stripeCustomer = $stripeClient->updateCustomerCard(
+            $user,
+            $token
+        );
+
+        // save card details!
+        $this->get('subscription_helper')->updateCardDetails($user, $stripeCustomer);
+
+        $this->addFlash('success', 'Card updated!');
 
         return $this->redirectToRoute('account');
     }
