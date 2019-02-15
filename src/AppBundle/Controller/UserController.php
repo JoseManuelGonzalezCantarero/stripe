@@ -70,11 +70,19 @@ class UserController extends BaseController
         $token = $request->request->get('stripeToken');
         $user = $this->getUser();
 
-        $stripeClient = $this->get('stripe_client');
-        $stripeCustomer = $stripeClient->updateCustomerCard(
-            $user,
-            $token
-        );
+        try {
+            $stripeClient = $this->get('stripe_client');
+            $stripeCustomer = $stripeClient->updateCustomerCard(
+                $user,
+                $token
+            );
+        } catch (\Stripe\Error\Card $e) {
+            $error = 'There was a problem charging your card: '.$e->getMessage();
+
+            $this->addFlash('error', $error);
+
+            return $this->redirectToRoute('account');
+        }
 
         // save card details!
         $this->get('subscription_helper')->updateCardDetails($user, $stripeCustomer);
