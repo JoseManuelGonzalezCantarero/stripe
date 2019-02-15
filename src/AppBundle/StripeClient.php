@@ -78,8 +78,21 @@ class StripeClient
             $user->getSubscription()->getStripeSubscriptionId()
         );
 
-        $sub->cancel_at_period_end = true;
+        $currentPeriodEnd = new \DateTime('@'.$sub->current_period_end);
+        $cancelAtPeriodEnd = true;
+
+        if ($sub->status == 'past_due') {
+            // past due? Cancel immediately, don't try charging again
+            $cancelAtPeriodEnd = false;
+        } elseif ($currentPeriodEnd < new \DateTime('+1 hour')) {
+            // within 1 hour of the end? Cancel so the invoice isn't charged
+            $cancelAtPeriodEnd = false;
+        }
+
+        $sub->cancel_at_period_end = $cancelAtPeriodEnd;
         $sub->save();
+
+        return $sub;
     }
 
     public function reactivateSubscription(User $user)
