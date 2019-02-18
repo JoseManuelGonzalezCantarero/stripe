@@ -118,4 +118,9 @@ class StripeClient
         ]);
         return $subscription;
     }
+
+    public function findEvent($eventId)
+    {
+        return \Stripe\Event::retrieve($eventId);
+    }
 }
