@@ -4,6 +4,7 @@ namespace AppBundle\Controller;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class WebhookController extends BaseController
 {
@@ -21,5 +22,33 @@ class WebhookController extends BaseController
         $eventId = $data['id'];
 
         $stripeEvent = $this->get('stripe_client')->findEvent($eventId);
+
+        $subscriptionHelper = $this->get('subscription_helper');
+        switch ($stripeEvent->type) {
+            case 'customer.subscription.deleted':
+                $stripeSubscriptionId = $stripeEvent->data->object->id;
+                $subscription = $this->findSubscription($stripeSubscriptionId);
+
+                $subscriptionHelper->fullyCancelSubscription($subscription);
+                break;
+            default:
+                throw new \Exception('Unexpected webhook type form Stripe! '.$stripeEvent->type);
+        }
+
+        return new Response('Event Handled: '.$stripeEvent->type);
+    }
+
+    private function findSubscription($stripeSubscriptionId)
+    {
+        $subscription = $this->getDoctrine()
+            ->getRepository('AppBundle:Subscription')
+            ->findOneBy([
+                'stripeSubscriptionId' => $stripeSubscriptionId
+            ]);
+        if (!$subscription) {
+            throw new \Exception('Somehow we have no subscription id ' . $stripeSubscriptionId);
+        }
+
+        return $subscription;
     }
 }
