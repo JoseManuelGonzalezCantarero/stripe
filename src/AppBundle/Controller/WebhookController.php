@@ -21,7 +21,12 @@ class WebhookController extends BaseController
 
         $eventId = $data['id'];
 
-        $stripeEvent = $this->get('stripe_client')->findEvent($eventId);
+        if ($this->getParameter('verify_stripe_event')) {
+            $stripeEvent = $this->get('stripe_client')->findEvent($eventId);
+        } else {
+            // fake the Stripe_Event in the test environment
+            $stripeEvent = json_decode($request->getContent());
+        }
 
         $subscriptionHelper = $this->get('subscription_helper');
         switch ($stripeEvent->type) {
